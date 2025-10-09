@@ -7,8 +7,6 @@ import About from './pages/about'
 import Contact from './pages/contact'
 import Product from './pages/product'
 import User from './pages/user'
-import Login from "../src/components/User/login"
-import Signup from "../src/components/User/signup"
 import PlaceOrder from './pages/placeOrder'
 import Orders from './pages/orders'
 import Request from './pages/request'
@@ -34,8 +32,6 @@ const App = () => {
           <Route path='/contact' element={<Contact />} />
           <Route path='/product/:id' element={<Product />} />
           <Route path='/user' element={<User />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/signup' element={<Signup />} />
           <Route path='/placeOrder' element={<PlaceOrder />} />
           <Route path='/orders' element={<Orders />} />
           <Route path='/request' element={<Request />} />

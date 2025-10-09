@@ -7,16 +7,30 @@ import { useCart } from './Cart/CartLogic'
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
 
-  //Destructure the function to open the cart
+  // Destructure the function to open the cart
   const { openCart } = useCart();
 
   // Add navigate for redirect
   const navigate = useNavigate();
 
-  // Function to handle login redirect
-  const handleLogin = () => {
-    navigate('/login');
+  // Function to handle clicking the profile icon
+  const handleUserClick = () => {
+    // Redirects to the unified authentication page (which displays Login first)
+    navigate('/user');
   };
+  
+  // Navigation handlers for the dropdown menu
+  const handleProfileClick = (path) => {
+    if (path === 'profile' || path === 'orders') {
+        // Redirects to the profile/orders page
+        navigate(path === 'profile' ? '/user' : '/orders');
+    } else if (path === 'logout') {
+        // Placeholder for actual logout logic (clearing tokens, etc.)
+        console.log("User logged out.");
+        navigate('/'); // Redirect to home after logout
+    }
+  };
+
 
   return (
     <div className='flex px-20 rounded-full items-center justify-between py-5 font-medium bg-[#e5f5e7]'>
@@ -61,15 +75,32 @@ const Navbar = () => {
 
         {/* PROFILE ICON AS BUTTON */}
         <div className='group relative'>
-          <button onClick={handleLogin} className='cursor-pointer'>
+          {/* 1. ON CLICK: Redirects to /user (Login Page) */}
+          <button onClick={handleUserClick} className='cursor-pointer'>
             <img className='w-5' src={assets.profile_icon} alt="Profile" />
           </button>
 
-          <div className='group-hover:block hidden absolute dropdown-menu right-0 pt-4'>
-            <div className='flex flex-col gap-2 w-36 py-3 px-5 bg-slate-100 text-gray-500 rounded'>
-              <p className='cursor-pointer hover:text-black'>My Profile</p>
-              <p className='cursor-pointer hover:text-black'>Orders</p>
-              <p className='cursor-pointer hover:text-black'>Logout</p>
+          {/* 2. ON HOVER: Shows Dropdown Menu (Added z-20 to ensure it's on top) */}
+          <div className='group-hover:block hidden absolute dropdown-menu right-0 pt-4 z-20'>
+            <div className='flex flex-col gap-2 w-36 py-3 px-5 bg-slate-100 text-gray-500 rounded shadow-lg'>
+              <p 
+                className='cursor-pointer hover:text-black font-medium'
+                onClick={() => handleProfileClick('profile')}
+              >
+                My Profile
+              </p>
+              <p 
+                className='cursor-pointer hover:text-black font-medium'
+                onClick={() => handleProfileClick('orders')}
+              >
+                Orders
+              </p>
+              <p 
+                className='cursor-pointer hover:text-black font-medium'
+                onClick={() => handleProfileClick('logout')}
+              >
+                Logout
+              </p>
             </div>
           </div>
         </div>
@@ -90,7 +121,7 @@ const Navbar = () => {
         />
       </div>
 
-      <div className={`absolute top-0 right-0 bottom-0 overflow-hidden bg-white transition-all ${visible ? 'w-full' : 'w-0'}`}>
+      <div className={`absolute top-0 right-0 bottom-0 overflow-hidden bg-white transition-all ${visible ? 'w-full' : 'w-0'} z-30`}>
         <div className='flex flex-col text-gray-600'>
           <div onClick={() => setVisible(false)} className='flex items-center gap-4 p-3 cursor-pointer'>
             <img className='h-4 rotate-180' src={assets.dropdown_icon} alt='phone menu'/>
