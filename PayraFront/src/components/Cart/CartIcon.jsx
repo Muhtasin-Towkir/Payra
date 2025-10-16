@@ -10,6 +10,7 @@ const CartIcon = () => {
       onClick={toggleCart}
       className="fixed top-6 right-6 z-30 bg-primary text-primary-foreground p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200"
       aria-label="Open cart"
+      data-testid="cart-icon-button" //tracker to test
     >
       <ShoppingCart className="w-6 h-6" />
       {itemCount > 0 && (

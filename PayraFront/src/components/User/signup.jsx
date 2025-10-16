@@ -1,39 +1,57 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import API from "../../api";
 
 function Signup({ onToggleForm }) { 
   const [name, setName] = useState("");
-  const [mobile, setMobile] = useState("");
+  const [mobile, setMobile] = useState(""); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // for future password visibility toggle
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(""); 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (!name || !mobile || !email || !password) {
       setError("Please fill in all fields");
       return;
     }
-
     if (password.length < 8) {
       setError("Password must be at least 8 characters");
       return;
     }
 
-    console.log("Signup:", { name, mobile, email, password });
+    try {
+      // Match with B.E
+      const payload = {
+        username: name,
+        email: email,
+        password: password,
+        mobile: mobile
+      };
+
+      const { data } = await API.post('/auth/register', payload);
+
+      setSuccess(data.message + " Please log in."); 
+      
+      // goes to login
+      setTimeout(() => {
+        onToggleForm();
+      }, 2000);
+
+    } catch (err) {
+      setError(err.response?.data?.message || "An unexpected error occurred.");
+    }
   };
   
   const handleToggleAndClear = () => {
-    setError(""); 
-    
-    if (typeof onToggleForm === 'function') {
-        onToggleForm(); 
-    } else {
-        console.error("onToggleForm prop is NOT a function in Signup!", onToggleForm);
-    }
+    setError("");
+    setSuccess("");
+    onToggleForm();
   };
 
   const darkGreen = "#004C04";
@@ -47,7 +65,6 @@ function Signup({ onToggleForm }) {
       <p className="text-gray-500 text-center mb-8">Sign up to get started with Payra</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Name Input */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium mb-2" style={{ color: labelColor }}>
             Name *
@@ -130,7 +147,9 @@ function Signup({ onToggleForm }) {
           <p className="text-xs text-gray-400 mt-1">Password must be at least 8 characters long</p>
         </div>
 
+        {/* Display success or error messages */}
         {error && <p className="mt-1 text-sm text-red-600 font-medium">{error}</p>}
+        {success && <p className="mt-1 text-sm text-green-600 font-medium">{success}</p>}
         
         <div className="pt-4 flex justify-center">
         <button

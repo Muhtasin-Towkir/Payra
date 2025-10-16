@@ -1,33 +1,33 @@
 import React, { useState } from 'react' 
 import { assets } from '../../assets/assets'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, X } from 'lucide-react'; 
 
 const Hero = () => {
-    // State to manage the active/expanded state of the search bar
     const [isSearchActive, setIsSearchActive] = useState(false);
-    
-    // State to hold the search input value (optional, but good practice)
     const [searchText, setSearchText] = useState('');
+    const navigate = useNavigate(); //Initialize the navigate function
 
-    // Handler to toggle the search bar
     const toggleSearch = () => {
         setIsSearchActive(prev => !prev);
-        // Clear search text when collapsing
         if (isSearchActive) {
             setSearchText(''); 
         }
     };
 
-    // Handler for form submission (e.g., hitting Enter in the search box)
+    //Calibrate the search submission handler
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        if (searchText.trim()) {
-            console.log("Searching for:", searchText);
-            // TODO: Implement actual search logic/redirection here
+        const trimmedSearchText = searchText.trim();
+        if (trimmedSearchText) {
+            // Redirect to Search page
+            navigate(`/search/${trimmedSearchText}`);
+            
+            // Reset the search bar after submission
+            setIsSearchActive(false); 
+            setSearchText('');
         }
     };
-
 
   return (
     <div
@@ -47,7 +47,7 @@ const Hero = () => {
                 </div>
                 <h1 className='hind-siliguri-bold text-5xl sm:py-3 lg:text-5xl leading-relaxed'>ঘরে বসে দেশি পণ্য</h1>
 
-                {/* Container for the Request Button (Original Structure Maintained) */}
+                {/* Container for the Request Button */}
                 <div className='flex items-center gap-2'>
                     <Link to="/request">
                         <button className='group font-semibold text-sm md:text-base text-[#024805] hover:text-white transition-colors active:scale-95 bg-[#FFD414] py-2 px-4 rounded-full'>
@@ -58,13 +58,11 @@ const Hero = () => {
                     </div>
                 </div>
 
-                {/* DYNAMIC SEARCH BUTTON/BAR CONTAINER (New Feature) */}
+                {/* DYNAMIC SEARCH BUTTON/BAR CONTAINER */}
                 <div 
                     className={`mt-4 flex items-center bg-[#FFD414] rounded-full shadow-md transition-all duration-300 ease-in-out 
                                 ${isSearchActive ? 'w-full max-w-md' : 'w-auto'}`}
-                    // Setting max-w-md constrains the expanded size
                 >
-                    {/* SEARCH BUTTON (Static part of the expanding bar) */}
                     <button 
                         onClick={toggleSearch} 
                         className={`font-semibold text-sm md:text-base text-[#024805] transition-colors active:scale-95 py-2 px-4 rounded-full flex items-center 
@@ -74,7 +72,6 @@ const Hero = () => {
                         {!isSearchActive && "SEARCH"}
                     </button>
 
-                    {/* EXPANDING SEARCH INPUT */}
                     {isSearchActive && (
                         <form onSubmit={handleSearchSubmit} className="flex-grow flex items-center">
                             <input
@@ -94,7 +91,6 @@ const Hero = () => {
                         </form>
                     )}
                 </div>
-                {/* END OF DYNAMIC SEARCH BUTTON/BAR CONTAINER */}
             </div>
         </div>
 

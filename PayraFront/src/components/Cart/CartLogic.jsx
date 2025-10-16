@@ -1,98 +1,100 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import API from '../../api'; // Axios
+import { useAuth } from '../../context/authContext'; // Get logged user
 
-const CartContext = createContext(undefined);
-
-const CART_STORAGE_KEY = 'cart';
+const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  // 1. CONSOLIDATED INITIALIZATION: Load items from localStorage ONLY ONCE
-  const [items, setItems] = useState(() => {
-    try {
-        const storedItems = localStorage.getItem(CART_STORAGE_KEY);
-        // Returns saved items or an empty array
-        return storedItems ? JSON.parse(storedItems) : [];
-    } catch (error) {
-        console.error('Error loading cart from localStorage:', error);
-        return [];
-    }
-  });
-
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  
-  // Ref to track the initial mount
-  const isInitialMount = useRef(true);
+  const { user } = useAuth();
 
-  // 2. SAVE EFFECT: Saves cart only when 'items' changes AND after initial mount
+  // This effect fetches the user's cart from the backend when they log in
   useEffect(() => {
-    // Skip the first execution of this effect (the initial load)
-    if (isInitialMount.current) {
-        isInitialMount.current = false;
-        return; 
-    }
-
-    // Only save the cart if the state has truly been modified post-load
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-    
-  }, [items]);
-
-  const addItem = (itemToAdd) => {
-    setItems((prevItems) => {
-      const existingItem = prevItems.find((i) => i.id === itemToAdd.id);
-      
-      if (existingItem) {
-        // Corrected: Increment the quantity
-        return prevItems.map((i) =>
-          i.id === itemToAdd.id
-            ? { ...i, quantity: i.quantity + itemToAdd.quantity }
-            : i
-        );
+    const fetchCart = async () => {
+      setLoading(true);
+      try {
+        const { data } = await API.get('/cart');
+        setItems(data.cart || []);
+      } catch (error) {
+        console.error("Failed to fetch user's cart.", error);
+        setItems([]);
       }
-      
-      // New item: add it
-      return [...prevItems, itemToAdd];
-    });
+      setLoading(false);
+    };
+
+    if (user) {
+      fetchCart(); // If a user is logged in, fetch their cart
+    } else {
+      setItems([]); // If user logs out, clear the cart from the state
+    }
+  }, [user]); // This runs every time the user logs in or out
+
+  // Now communicate with the backend ---
+
+  const addItem = async (itemToAdd) => {
+    if (!user) {
+      alert("You must be logged in to add items to your cargo hold.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data } = await API.post('/cart', {
+        productId: itemToAdd.id,
+        quantity: itemToAdd.quantity
+      });
+      setItems(data.cart); // Update frontend state with the new cart from the backend
+    } catch (error) {
+      console.error("Failed to add item to cart.", error);
+    }
+    setLoading(false);
   };
 
-  const removeItem = (id) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const removeItem = async (productId) => {
+    setLoading(true);
+    try {
+      const { data } = await API.delete(`/cart/${productId}`);
+      setItems(data.cart);
+    } catch (error) {
+      console.error("Failed to remove item from cart.", error);
+    }
+    setLoading(false);
   };
 
-  const updateQuantity = (id, quantity) => {
-    if (quantity < 1 || quantity > 100) return;
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      )
-    );
+  const updateQuantity = async (productId, quantity) => {
+    setLoading(true);
+    try {
+      const { data } = await API.put(`/cart/${productId}`, { quantity });
+      setItems(data.cart);
+    } catch (error) {
+      console.error("Failed to update item quantity.", error);
+    }
+    setLoading(false);
   };
 
+  // UI control functions
   const openCart = () => setIsOpen(true);
   const closeCart = () => setIsOpen(false);
   const toggleCart = () => setIsOpen((prev) => !prev);
 
+  // Calculated values can also remain
   const getSubtotal = () => {
-    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   };
-
   const getItemCount = () => {
     return items.reduce((sum, item) => sum + item.quantity, 0);
   };
 
+  const value = {
+    items, isOpen, loading,
+    addItem, removeItem, updateQuantity,
+    openCart, closeCart, toggleCart,
+    getSubtotal, getItemCount,
+  };
+
   return (
-    <CartContext.Provider
-      value={{
-        items,
-        isOpen,
-        addItem,
-        removeItem,
-        updateQuantity,
-        openCart,
-        closeCart,
-        toggleCart,
-        getSubtotal,
-        getItemCount,
-      }}
-    >
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );

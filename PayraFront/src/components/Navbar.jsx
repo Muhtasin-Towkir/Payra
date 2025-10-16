@@ -1,133 +1,156 @@
-import React, { useState } from 'react'
-import { assets } from '../assets/assets'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
-import CartIcon from './Cart/CartIcon' 
-import { useCart } from './Cart/CartLogic'
+import React, { useState } from 'react';
+import { assets } from '../assets/assets';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import CartIcon from './Cart/CartIcon';
+import { useCart } from './Cart/CartLogic';
+import { useAuth } from '../context/authContext'; // NEW: Import useAuth
+import { Search, X } from 'lucide-react';
 
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
-
-  // Destructure the function to open the cart
   const { openCart } = useCart();
-
-  // Add navigate for redirect
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  // Function to handle clicking the profile icon
-  const handleUserClick = () => {
-    // Redirects to the unified authentication page (which displays Login first)
-    navigate('/user');
-  };
-  
-  // Navigation handlers for the dropdown menu
-  const handleProfileClick = (path) => {
-    if (path === 'profile' || path === 'orders') {
-        // Redirects to the profile/orders page
-        navigate(path === 'profile' ? '/user' : '/orders');
-    } else if (path === 'logout') {
-        // Placeholder for actual logout logic (clearing tokens, etc.)
-        console.log("User logged out.");
-        navigate('/'); // Redirect to home after logout
+  // --- 2. ADDED STATE AND HANDLERS FOR THE SEARCH BAR ---
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchText, setSearchText] = useState('');
+
+  // Handler to toggle the search bar
+  const toggleSearch = () => {
+    setIsSearchActive(prev => !prev);
+    // Clear search text when collapsing the bar
+    if (isSearchActive) {
+      setSearchText('');
     }
   };
 
+  // Handler for form submission (e.g., hitting Enter in the search box)
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const trimmedSearchText = searchText.trim();
+    if (trimmedSearchText) {
+      // This command navigates the user to the search results page URL
+      navigate(`/search/${trimmedSearchText}`);
+
+      // Reset the search bar after submission
+      setIsSearchActive(false);
+      setSearchText('');
+    }
+  };
+  // --- END OF SEARCH BAR LOGIC ---
+
+  const handleUserClick = () => {
+    if (user) {
+      navigate('/profile');
+    } else {
+      navigate('/user');
+    }
+  };
+
+  const handleProfileClick = (path) => {
+    if (path === 'profile') {
+      navigate('/profile');
+    } else if (path === 'orders') {
+      navigate('/orders');
+    } else if (path === 'logout') {
+      logout();
+    }
+  };
 
   return (
     <div className='flex px-20 rounded-full items-center justify-between py-5 font-medium bg-[#e5f5e7]'>
       <Link to='/'>
-        <img 
-          src={assets.payra_logo} 
-          alt="Payra Logo" 
+        <img
+          src={assets.payra_logo}
+          alt="Payra Logo"
           style={{ width: "144px", height: "auto" }}
           className='cursor-pointer'
         />
       </Link>
 
       <ul className='hidden sm:flex gap-5 text-sm text-gray-700'>
-        <NavLink to='/' className='flex flex-col items-center gap-1'>
-          <p>HOME</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
-        </NavLink>
-
-        <NavLink to='/shop' className='flex flex-col items-center gap-1'>
-          <p>SHOP</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
-        </NavLink>
-
-        <NavLink to='/request' className='flex flex-col items-center gap-1'>
-          <p>REQUEST A PRODUCT</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
-        </NavLink>
-
-        <NavLink to='/about' className='flex flex-col items-center gap-1'>
-          <p>ABOUT</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
-        </NavLink>
-
-        <NavLink to='/contact' className='flex flex-col items-center gap-1'>
-          <p>CONTACT</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
-        </NavLink>
+        {/* NavLink items remain unchanged */}
+        <NavLink to='/' className='flex flex-col items-center gap-1'><p>HOME</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
+        <NavLink to='/shop' className='flex flex-col items-center gap-1'><p>SHOP</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
+        <NavLink to='/request' className='flex flex-col items-center gap-1'><p>REQUEST A PRODUCT</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
+        <NavLink to='/about' className='flex flex-col items-center gap-1'><p>ABOUT</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
+        <NavLink to='/contact' className='flex flex-col items-center gap-1'><p>CONTACT</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
       </ul>
 
       <div className='flex items-center gap-6'>
-        <img className='w-5 cursor-pointer' src={assets.search_icon} alt=""/>
 
-        {/* PROFILE ICON AS BUTTON */}
+        <div
+          className={`flex items-center bg-white rounded-full shadow-sm transition-all duration-300 ease-in-out
+                        ${isSearchActive ? 'w-64' : 'w-auto'}`}
+        >
+          <button
+            onClick={toggleSearch}
+            className="p-2 rounded-full text-gray-700 hover:bg-gray-100 transition-colors active:scale-95 flex items-center"
+            data-testid="search-toggle-button" // Tracker for testing
+          >
+            {isSearchActive ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+          </button>
+
+          {isSearchActive && (
+            <form onSubmit={handleSearchSubmit} className="flex-grow flex items-center pr-2">
+              <input
+                type="text"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder="Search products..."
+                autoFocus
+                className="w-full bg-transparent text-gray-700 placeholder-gray-500 focus:outline-none px-2 py-1"
+              />
+              <button
+                type="submit"
+                className="p-1 rounded-full text-gray-600 hover:bg-gray-200"
+                aria-label="Submit Search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+            </form>
+          )}
+        </div>
+        {/* SEARCH BAR */}
+
         <div className='group relative'>
-          {/* 1. ON CLICK: Redirects to /user (Login Page) */}
+          {/* User profile dropdown*/}
           <button onClick={handleUserClick} className='cursor-pointer'>
             <img className='w-5' src={assets.profile_icon} alt="Profile" />
           </button>
-
-          {/* 2. ON HOVER: Shows Dropdown Menu (Added z-20 to ensure it's on top) */}
-          <div className='group-hover:block hidden absolute dropdown-menu right-0 pt-4 z-20'>
-            <div className='flex flex-col gap-2 w-36 py-3 px-5 bg-slate-100 text-gray-500 rounded shadow-lg'>
-              <p 
-                className='cursor-pointer hover:text-black font-medium'
-                onClick={() => handleProfileClick('profile')}
-              >
-                My Profile
-              </p>
-              <p 
-                className='cursor-pointer hover:text-black font-medium'
-                onClick={() => handleProfileClick('orders')}
-              >
-                Orders
-              </p>
-              <p 
-                className='cursor-pointer hover:text-black font-medium'
-                onClick={() => handleProfileClick('logout')}
-              >
-                Logout
-              </p>
+          {user && (
+            <div className='group-hover:block hidden absolute dropdown-menu right-0 pt-4 z-20'>
+              <div className='flex flex-col gap-2 w-max py-3 px-5 bg-slate-100 text-gray-500 rounded shadow-lg'>
+                <p className='font-semibold text-black truncate'>Hello, {user.username}</p>
+                <hr className='my-1' />
+                <p className='cursor-pointer hover:text-black font-medium' onClick={() => handleProfileClick('profile')}>My Profile</p>
+                <p className='cursor-pointer hover:text-black font-medium' onClick={() => handleProfileClick('orders')}>Orders</p>
+                <p className='cursor-pointer hover:text-red-600 font-medium' onClick={() => handleProfileClick('logout')}>Logout</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* CART SECTION */}
-        <div 
-          className='relative cursor-pointer' 
-          onClick={() => { console.log("Calling openCart"); openCart(); }}
-        >
+        <div className='relative cursor-pointer' onClick={openCart}>
           <CartIcon />
         </div>
 
-        <img 
-          onClick={() => setVisible(true)} 
-          src={assets.menu_icon} 
-          className='w-5 cursor-pointer sm:hidden' 
+        <img
+          onClick={() => setVisible(true)}
+          src={assets.menu_icon}
+          className='w-5 cursor-pointer sm:hidden'
           alt=''
         />
       </div>
 
+      {/* Mobile menu */}
       <div className={`absolute top-0 right-0 bottom-0 overflow-hidden bg-white transition-all ${visible ? 'w-full' : 'w-0'} z-30`}>
         <div className='flex flex-col text-gray-600'>
           <div onClick={() => setVisible(false)} className='flex items-center gap-4 p-3 cursor-pointer'>
-            <img className='h-4 rotate-180' src={assets.dropdown_icon} alt='phone menu'/>
+            <img className='h-4 rotate-180' src={assets.dropdown_icon} alt='phone menu' />
             <p>Back</p>
           </div>
-          
           <NavLink onClick={() => setVisible(false)} className='py-2 pl-6 border' to='/'>HOME</NavLink>
           <NavLink onClick={() => setVisible(false)} className='py-2 pl-6 border' to='/shop'>SHOP</NavLink>
           <NavLink onClick={() => setVisible(false)} className='py-2 pl-6 border' to='/request'>REQUEST PRODUCT</NavLink>
@@ -139,4 +162,4 @@ const Navbar = () => {
   )
 }
 
-export default Navbar
+export default Navbar;

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import API from "../../api";
 
 export default function Login({ onToggleForm }) { 
   const [email, setEmail] = useState("");
@@ -7,7 +8,8 @@ export default function Login({ onToggleForm }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  // API call
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -16,12 +18,18 @@ export default function Login({ onToggleForm }) {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
+    try {
+      const { data } = await API.post('/auth/login', { email, password });
 
-    console.log("Login:", { email, password });
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('userProfile', JSON.stringify(data.user));
+
+
+      window.location.href = '/';
+
+    } catch (err) {
+      setError(err.response?.data?.message || "An unexpected error occurred.");
+    }
   };
   
   const handleToggleAndClear = () => {

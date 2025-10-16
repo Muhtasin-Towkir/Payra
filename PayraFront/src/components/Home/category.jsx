@@ -1,10 +1,10 @@
 const Categories = () => {
 
   const handleCategoryClick = (categoryName) => {
-    // This function will redirect to the shop page with the correct category filter
+    // redirect to the shop page with the correct category filter
     const url = `/shop?category=${categoryName}`;
     window.location.href = url;
-    console.log(`Redirecting to: ${url}`); // Optional: Check console for confirmation
+    console.log(`Redirecting to: ${url}`); // Optional: Check console 
   };
 
   return (
