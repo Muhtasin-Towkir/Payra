@@ -17,7 +17,7 @@ const ProductSchema = new mongoose.Schema({
   isBestSeller: { type: Boolean, default: false, index: true },
   rating: { type: Number, default: 0 },
   reviews: { type: Number, default: 0 },
-  inStock: { type: Boolean, default: true },
+  inStock: { type: Number, default: 100, required: true },
   images: [
     {
       public_id: { type: String, required: true },

@@ -1,37 +1,33 @@
 import { useNavigate } from 'react-router-dom';
-
 import Hero from '../components/Home/hero';
 import BestSeller from '../components/Home/bestseller';
 import Categories from '../components/Home/category';
 import { HeroStats } from '../components/Home/hero stats';
 
-// 1. Import the powerful, refactored hook from your shop logic
-import { useShopState } from '../components/Shop/shoplogic.jsx';
+// 1. Import the new, dedicated hook
+import { useBestsellers } from '../hooks/usebestseller';
 
 const Home = () => {
-  // 2. Use the hook to receive the live data stream and its status
-  const { products, loading, error } = useShopState();
+  // 2. Use the new hook to get only bestseller products
+  const { bestsellers, loading, error } = useBestsellers();
   const navigate = useNavigate();
 
   const handleProductSelect = (id) => {
     navigate(`/product/${id}`);
   };
 
-  // 3. Filter the live data stream to find the featured records (bestsellers)
-  const bestsellerProducts = products.filter(product => product.isBestSeller === true).slice(0, 4);
+  // 3. No client-side filtering is needed anymore. The backend does the work.
 
   return (
     <div className="min-h-screen"> 
       <Hero />
 
-      {/* 4. Conditionally render the BestSeller component based on the data stream's status */}
-      {loading && <p className="text-center py-10">Receiving transmissions from the archives...</p>}
-      
+      {loading && <p className="text-center py-10">Receiving transmissions...</p>}
       {error && <p className="text-center py-10 text-red-500">{error}</p>}
       
       {!loading && !error && (
         <BestSeller 
-          products={bestsellerProducts} // Pass the filtered LIVE data
+          products={bestsellers} // 4. Pass the direct bestseller list
           onProductSelect={handleProductSelect} 
         />
       )}

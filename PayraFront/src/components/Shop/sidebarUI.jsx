@@ -18,6 +18,7 @@ const FilterSidebar = ({
     handleCategoryChange,
     handleSubcategoryChange,
     handleFilterChange,
+    handleStockChange, // <-- New prop for stock
     clearFilter,
     clearAllFilters,
     setShowFilters,
@@ -102,18 +103,44 @@ const FilterSidebar = ({
                     </div>
                 )}
                 
-                {/* Stock Filter */}
+                {/* --- STOCK FILTER (Corrected) --- */}
                 <div className="mb-6">
                      <h4 className="font-medium text-gray-900 mb-3">Stock Status</h4>
                      <div className="space-y-2">
-                         {["In Stock", "Out of Stock"].map((status) => (
-                            <label key={status} className="flex items-center">
-                                <input type="checkbox" checked={filters.stock.includes(status)} onChange={() => handleFilterChange("stock", status)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                                <span className="ml-2 text-sm text-gray-700">{status}</span>
-                            </label>
-                         ))}
+                         {/* Changed from Checkbox to Radio for exclusive selection */}
+                         <label className="flex items-center">
+                            <input 
+                                type="radio" 
+                                name="stock"
+                                checked={filters.stock === "In Stock"} 
+                                onChange={() => handleStockChange("In Stock")} 
+                                className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">In Stock</span>
+                         </label>
+                         <label className="flex items-center">
+                            <input 
+                                type="radio" 
+                                name="stock"
+                                checked={filters.stock === "Out of Stock"} 
+                                onChange={() => handleStockChange("Out of Stock")} 
+                                className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">Out of Stock</span>
+                         </label>
+                         <label className="flex items-center">
+                            <input 
+                                type="radio" 
+                                name="stock"
+                                checked={!filters.stock} // "None"
+                                onChange={() => handleStockChange(null)} 
+                                className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">All</span>
+                         </label>
                      </div>
                 </div>
+                {/* --- END OF CORRECTION --- */}
 
                 {/* Clothes Filters */}
                 {selectedCategory === "Clothes" && currentCategoryData.colors && (
@@ -133,3 +160,4 @@ const FilterSidebar = ({
 };
 
 export default FilterSidebar;
+

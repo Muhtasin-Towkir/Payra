@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth.js'; // Our security droid
+import { protect } from '../middleware/auth.js';
 import { 
     addToCart, 
     getCart, 
@@ -14,11 +14,11 @@ router.use(protect);
 
 // Define the routes for cart operations
 router.route('/')
-    .get(getCart) // GET /api/v1/cart - Fetches the user's cart
-    .post(addToCart); // POST /api/v1/cart - Adds an item to the cart
+    .get(getCart) 
+    .post(addToCart); 
 
 router.route('/:productId')
-    .put(updateCartItem)    // PUT /api/v1/cart/:productId - Updates an item's quantity
-    .delete(removeCartItem); // DELETE /api/v1/cart/:productId - Removes an item
+    .put(updateCartItem)    
+    .delete(removeCartItem); 
 
 export default router;

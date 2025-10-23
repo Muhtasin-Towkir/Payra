@@ -1,13 +1,19 @@
 import { Heart, ShoppingCart, Plus, Minus, Star } from "lucide-react";
+import { useWishlist } from "../../context/wishListContext";// <-- 1. Import new hook
+import { useAuth } from '../../context/authContext.jsx'; // <-- 2. Import auth hook
 
 const ProductInfo = ({
     product, quantity, incrementQuantity, decrementQuantity,
     handleQuantityChange, selectedSize, setSelectedSize,
-    handleAddToCart
+    handleAddToCart,
+    // --- 3. Add new props from the logic hook ---
+    isWishlisted, 
+    handleWishlistToggle 
 }) => {
     if (!product) return null;
 
     const availableSizes = product.details?.size;
+    const { user } = useAuth(); // Get user status
 
     return (
         <div>
@@ -96,9 +102,25 @@ const ProductInfo = ({
                         Add To Cart
                     </button>
 
-                    <button className="p-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                        <Heart className="w-5 h-5 text-gray-600" />
+                    {/* --- 4. WISHLIST BUTTON (Updated) --- */}
+                    <button 
+                        className={`p-3 border rounded-md transition-colors ${
+                            isWishlisted 
+                                ? "bg-red-50 border-red-300" 
+                                : "border-gray-300 hover:bg-gray-50"
+                        }`}
+                        onClick={handleWishlistToggle}
+                        // Disable the button if the user is not logged in, as wishlist is user-specific
+                        disabled={!user} 
+                        title={!user ? "Log in to add to wishlist" : (isWishlisted ? "Remove from wishlist" : "Add to wishlist")}
+                    >
+                        <Heart className={`w-5 h-5 ${
+                            isWishlisted 
+                                ? "text-red-500 fill-current" 
+                                : "text-gray-600"
+                        }`} />
                     </button>
+                    {/* --- END OF UPDATE --- */}
                 </div>
             </div>
             
@@ -107,3 +129,4 @@ const ProductInfo = ({
 };
 
 export default ProductInfo;
+

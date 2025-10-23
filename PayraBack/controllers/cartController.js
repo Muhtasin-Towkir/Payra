@@ -1,15 +1,12 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/user.js';
 import Product from '../models/product.js';
-//private
 // --- ADD TO CART ---
 export const addToCart = asyncHandler(async (req, res) => {
   const { productId, quantity } = req.body;
   
   // The 'protect' middleware gives us the logged-in user's ID
   const userId = req.user.id;
-
-  // First, verify the product exists
   const product = await Product.findById(productId);
   if (!product) {
     res.status(404);
@@ -34,7 +31,6 @@ export const addToCart = asyncHandler(async (req, res) => {
   await user.save();
   
   // Respond with the newly updated cart
-  // We populate the cart to send back full product details
   const updatedUser = await User.findById(userId).populate('cart.product');
   res.status(200).json({
     success: true,
@@ -65,7 +61,6 @@ export const updateCartItem = asyncHandler(async (req, res) => {
     const { quantity } = req.body;
 
     if (quantity <= 0) {
-        // If quantity is 0 or less, remove the item instead
         const updatedUser = await User.findByIdAndUpdate(
             req.user.id,
             { $pull: { cart: { product: productId } } },
@@ -74,7 +69,6 @@ export const updateCartItem = asyncHandler(async (req, res) => {
         return res.status(200).json({ success: true, message: 'Cargo jettisoned.', cart: updatedUser.cart });
     }
 
-    // Use a direct MongoDB update for efficiency
     const updatedUser = await User.findOneAndUpdate(
         { _id: req.user.id, 'cart.product': productId },
         { $set: { 'cart.$.quantity': quantity } },
@@ -89,11 +83,10 @@ export const updateCartItem = asyncHandler(async (req, res) => {
 export const removeCartItem = asyncHandler(async (req, res) => {
     const { productId } = req.params;
 
-    // Use the $pull operator to remove the item from the cart array in one atomic operation
     const updatedUser = await User.findByIdAndUpdate(
         req.user.id,
         { $pull: { cart: { product: productId } } },
-        { new: true } // 'new: true' returns the updated document
+        { new: true } 
     ).populate('cart.product');
 
     if (!updatedUser) {

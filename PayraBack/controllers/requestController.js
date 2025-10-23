@@ -3,7 +3,6 @@ import Request from '../models/request.js';
 import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
 
-// Private
 export const createRequest = asyncHandler(async (req, res) => {
   const { itemName, externalLink, quantity } = req.body;
 
@@ -33,8 +32,8 @@ export const createRequest = asyncHandler(async (req, res) => {
     externalLink,
     quantity,
     itemPhoto: imageUploadResult,
-    user: req.user.id, // Get the user ID from the 'protect' middleware
-  });
+    user: req.user.id, 
+  })
 
   if (request) {
     res.status(201).json({
@@ -46,5 +45,56 @@ export const createRequest = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Invalid request data.');
   }
+});
+
+// --- NEW USER FUNCTION ---
+
+export const getMyRequests = asyncHandler(async (req, res) => {
+  const requests = await Request.find({ user: req.user.id })
+    .populate('user', 'username email')
+    .sort({ createdAt: -1 });
+
+  res.status(200).json(requests);
+});
+
+
+// --- ADMIN FUNCTIONS ---
+
+export const getAllRequests = asyncHandler(async (req, res) => {
+  // Populate the 'user' field, selecting only their username and email
+  const requests = await Request.find({})
+    .populate('user', 'username email')
+    .sort({ createdAt: -1 });
+    
+  res.status(200).json(requests);
+});
+
+export const getRequestById = asyncHandler(async (req, res) => {
+  const request = await Request.findById(req.params.id).populate('user', 'username email');
+
+  if (request) {
+    res.status(200).json(request);
+  } else {
+    res.status(404);
+    throw new Error('Request record not found.');
+  }
+});
+
+export const deleteRequest = asyncHandler(async (req, res) => {
+  const request = await Request.findById(req.params.id);
+
+  if (!request) {
+    res.status(4404);
+    throw new Error('Request record not found.');
+  }
+
+  // Check if there is an image associated and delete it from Cloudinary
+  if (request.itemPhoto && request.itemPhoto.public_id) {
+    await cloudinary.uploader.destroy(request.itemPhoto.public_id);
+  }
+
+  // Delete the request from the database
+  await request.deleteOne();
+  res.status(200).json({ message: 'Request record deleted.' });
 });
 

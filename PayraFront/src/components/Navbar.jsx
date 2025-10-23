@@ -3,7 +3,7 @@ import { assets } from '../assets/assets';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import CartIcon from './Cart/CartIcon';
 import { useCart } from './Cart/CartLogic';
-import { useAuth } from '../context/authContext'; // NEW: Import useAuth
+import { useAuth } from '../context/authContext'; 
 import { Search, X } from 'lucide-react';
 
 const Navbar = () => {
@@ -12,54 +12,49 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  // --- 2. ADDED STATE AND HANDLERS FOR THE SEARCH BAR ---
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchText, setSearchText] = useState('');
 
-  // Handler to toggle the search bar
   const toggleSearch = () => {
     setIsSearchActive(prev => !prev);
-    // Clear search text when collapsing the bar
     if (isSearchActive) {
       setSearchText('');
     }
   };
 
-  // Handler for form submission (e.g., hitting Enter in the search box)
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const trimmedSearchText = searchText.trim();
     if (trimmedSearchText) {
-      // This command navigates the user to the search results page URL
       navigate(`/search/${trimmedSearchText}`);
-
-      // Reset the search bar after submission
       setIsSearchActive(false);
       setSearchText('');
     }
   };
-  // --- END OF SEARCH BAR LOGIC ---
 
   const handleUserClick = () => {
-    if (user) {
-      navigate('/profile');
-    } else {
+    if (!user) {
       navigate('/user');
     }
   };
 
+  // --- MODIFICATION: Updated Navigation Coordinates ---
   const handleProfileClick = (path) => {
     if (path === 'profile') {
-      navigate('/profile');
+      // Navigate to the nested profile route
+      navigate('/dashboard/profile'); 
     } else if (path === 'orders') {
-      navigate('/orders');
+      // Navigate to the nested orders route
+      navigate('/dashboard/my-orders'); 
     } else if (path === 'logout') {
       logout();
+      navigate('/'); 
     }
   };
+  // --- END OF MODIFICATION ---
 
   return (
-    <div className='flex px-20 rounded-full items-center justify-between py-5 font-medium bg-[#e5f5e7]'>
+    <div className='flex pr-2 pl-6 rounded-full items-center justify-between py-5 font-medium bg-[#e5f5e7]'>
       <Link to='/'>
         <img
           src={assets.payra_logo}
@@ -69,11 +64,10 @@ const Navbar = () => {
         />
       </Link>
 
-      <ul className='hidden sm:flex gap-5 text-sm text-gray-700'>
-        {/* NavLink items remain unchanged */}
+      <ul className='hidden pl-2 sm:flex gap-7 text-sm text-gray-700'>
         <NavLink to='/' className='flex flex-col items-center gap-1'><p>HOME</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
         <NavLink to='/shop' className='flex flex-col items-center gap-1'><p>SHOP</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
-        <NavLink to='/request' className='flex flex-col items-center gap-1'><p>REQUEST A PRODUCT</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
+        <NavLink to='/request' className='flex flex-col text-center items-center gap-1'><p>REQUEST</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
         <NavLink to='/about' className='flex flex-col items-center gap-1'><p>ABOUT</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
         <NavLink to='/contact' className='flex flex-col items-center gap-1'><p>CONTACT</p><hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" /></NavLink>
       </ul>
@@ -87,7 +81,7 @@ const Navbar = () => {
           <button
             onClick={toggleSearch}
             className="p-2 rounded-full text-gray-700 hover:bg-gray-100 transition-colors active:scale-95 flex items-center"
-            data-testid="search-toggle-button" // Tracker for testing
+            data-testid="search-toggle-button" 
           >
             {isSearchActive ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
           </button>
@@ -112,10 +106,8 @@ const Navbar = () => {
             </form>
           )}
         </div>
-        {/* SEARCH BAR */}
-
+        
         <div className='group relative'>
-          {/* User profile dropdown*/}
           <button onClick={handleUserClick} className='cursor-pointer'>
             <img className='w-5' src={assets.profile_icon} alt="Profile" />
           </button>
@@ -124,8 +116,23 @@ const Navbar = () => {
               <div className='flex flex-col gap-2 w-max py-3 px-5 bg-slate-100 text-gray-500 rounded shadow-lg'>
                 <p className='font-semibold text-black truncate'>Hello, {user.username}</p>
                 <hr className='my-1' />
+                {/* --- The onClick handlers now call the updated handleProfileClick --- */}
                 <p className='cursor-pointer hover:text-black font-medium' onClick={() => handleProfileClick('profile')}>My Profile</p>
                 <p className='cursor-pointer hover:text-black font-medium' onClick={() => handleProfileClick('orders')}>Orders</p>
+                
+                {user.role === 'admin' && (
+                  <>
+                    <hr className='my-1' />
+                    <p 
+                      className='cursor-pointer hover:text-blue-600 font-medium' 
+                      onClick={() => navigate('/admin')}
+                    >
+                      Admin Panel
+                    </p>
+                  </>
+                )}
+                
+                <hr className='my-1' />
                 <p className='cursor-pointer hover:text-red-600 font-medium' onClick={() => handleProfileClick('logout')}>Logout</p>
               </div>
             </div>
@@ -144,7 +151,6 @@ const Navbar = () => {
         />
       </div>
 
-      {/* Mobile menu */}
       <div className={`absolute top-0 right-0 bottom-0 overflow-hidden bg-white transition-all ${visible ? 'w-full' : 'w-0'} z-30`}>
         <div className='flex flex-col text-gray-600'>
           <div onClick={() => setVisible(false)} className='flex items-center gap-4 p-3 cursor-pointer'>
@@ -163,3 +169,4 @@ const Navbar = () => {
 }
 
 export default Navbar;
+

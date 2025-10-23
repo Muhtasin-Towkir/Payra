@@ -3,15 +3,16 @@ import asyncHandler from 'express-async-handler';
 import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
 
-// CREATE 
-// Private/Admin
+ 
+//Admin
 export const createProduct = asyncHandler(async (req, res) => {
-  // Destructure all expected fields from the request body
   const { 
     sku, name, price, description, category,
-    subcategory, date, inStock, sale, originalPrice, 
+    subcategory, inStock, sale, originalPrice, 
     rating, reviews, details 
   } = req.body;
+
+  const productDate = req.body.date || new Date();
 
   if (!req.files || req.files.length === 0) {
     res.status(400);
@@ -38,7 +39,9 @@ export const createProduct = asyncHandler(async (req, res) => {
   // Create the product with all fields from the schema
   const product = await Product.create({
     sku, name, price, description, category,
-    subcategory, date, inStock, sale, originalPrice,
+    subcategory, 
+    date: productDate, 
+    inStock, sale, originalPrice,
     rating, reviews, details,
     images: imagesData,
   });
@@ -46,17 +49,17 @@ export const createProduct = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, product });
 });
 
-// READ (All with Filters)
-//  Public
 export const getAllProducts = asyncHandler(async (req, res) => {
   const queryObj = {};
 
   // Build the query object dynamically from URL query params
   if (req.query.category) queryObj.category = req.query.category;
   if (req.query.subcategory) queryObj.subcategory = req.query.subcategory;
-  if (req.query.inStock) queryObj.inStock = req.query.inStock === 'true';
+    if (req.query.inStock) {
+    // req.query.inStock will arrive as an object like { gte: '1' } or { lte: '0' }
+    queryObj.inStock = req.query.inStock; 
+  }
 
-  // Handle array-like filters (e.g., color=Red,Blue) using the $in operator
   if (req.query['details.color']) queryObj['details.color'] = { $in: req.query['details.color'].split(',') };
   if (req.query['details.size']) queryObj['details.size'] = { $in: req.query['details.size'].split(',') };
   if (req.query.material) queryObj['details.material'] = { $in: req.query.material.split(',') };
@@ -86,14 +89,14 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 export const getProductById = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
   if (!product) {
-    res.status(404);
+    res.status(44);
     throw new Error('Product not found');
   }
   res.status(200).json({ success: true, product });
 });
 
 // UPDATE
-//Private/Admin
+//Admin
 export const updateProduct = asyncHandler(async (req, res) => {
   let product = await Product.findById(req.params.id);
   if (!product) {
@@ -101,7 +104,6 @@ export const updateProduct = asyncHandler(async (req, res) => {
     throw new Error('Product not found');
   }
 
-  // This simple version handles updating text/number fields. A full image update is more complex.
   product = await Product.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
@@ -171,3 +173,15 @@ export const searchProducts = asyncHandler(async (req, res) => {
     products,
   });
 });
+
+export const getBestsellerProducts = asyncHandler(async (req, res) => {
+  // Find all products where the isBestSeller flag is true
+  const products = await Product.find({ isBestSeller: true });
+
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    products,
+  });
+});
+

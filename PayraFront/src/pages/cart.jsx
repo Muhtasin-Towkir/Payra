@@ -1,8 +1,8 @@
 import { useCart } from '../components/Cart/CartLogic';
 import { CartStyle } from '../components/Cart/CartStyle';
+import { useNavigate } from 'react-router-dom';
 
 export const CartContainer = () => {
-  // Get everything directly from the hook
   const {
     items,
     isOpen,
@@ -10,26 +10,32 @@ export const CartContainer = () => {
     removeItem,
     updateQuantity,
     getSubtotal,
-    loading, // Pass loading state to the UI
+    loading,
   } = useCart();
+  
+  const navigate = useNavigate(); 
 
   if (!isOpen) {
     return null;
   }
 
-  // Define simple handlers that call the functions from the context
   const handleIncrement = (id, currentQty) => updateQuantity(id, currentQty + 1);
   const handleDecrement = (id, currentQty) => updateQuantity(id, currentQty - 1);
 
-  // Render the presentation component, passing down the data and handlers
+  // This function will now close the cart and navigate to the Place Order page.
+  const handleCheckout = () => {
+    closeCart();
+    navigate('/placeOrder');
+  };
+
   return (
     <CartStyle
       items={items}
       closeCart={closeCart}
       handleIncrement={handleIncrement}
       handleDecrement={handleDecrement}
-      handleRemoveItem={removeItem} // Pass the function directly
-      handleCheckout={() => { /* Implement checkout logic */ }}
+      handleRemoveItem={removeItem}
+      handleCheckout={handleCheckout}
       subtotal={getSubtotal()}
       loading={loading}
     />

@@ -44,8 +44,6 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Authenticate user & get token (Login)
-// @route   POST /api/v1/auth/login
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -70,10 +68,56 @@ export const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get all users
-// @route   GET /api/v1/auth/users
-//  Private/Admin
 export const getAllUsers = asyncHandler(async (req, res) => {
     const users = await User.find({}).select('-password'); // Exclude passwords from the list
     res.status(200).json(users);
+});
+
+// --- ADMIN FUNCTIONS ---
+export const getUserById = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).select('-password');
+  if (user) {
+    res.status(200).json(user);
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+export const updateUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Admin can update username, email, mobile, and role
+  user.username = req.body.username || user.username;
+  user.email = req.body.email || user.email;
+  user.mobile = req.body.mobile || user.mobile;
+  user.role = req.body.role || user.role;
+
+  const updatedUser = await user.save();
+  
+  const userResponse = updatedUser.toObject();
+  delete userResponse.password;
+
+  res.status(200).json(userResponse);
+});
+
+export const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (user) {
+    if (user.role === 'admin') {
+      res.status(400);
+      throw new Error('Cannot delete an admin user.');
+    }
+    await user.deleteOne();
+    res.status(200).json({ message: 'User removed from registry.' });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
 });

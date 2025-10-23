@@ -35,14 +35,18 @@ export const CartProvider = ({ children }) => {
 
   const addItem = async (itemToAdd) => {
     if (!user) {
-      alert("You must be logged in to add items to your cargo hold.");
+      // Replaced alert with console warning as per your request
+      console.warn("You must be logged in to add items to your cargo hold.");
+      // You might want to trigger a login modal here
       return;
     }
     setLoading(true);
     try {
       const { data } = await API.post('/cart', {
         productId: itemToAdd.id,
-        quantity: itemToAdd.quantity
+        quantity: itemToAdd.quantity,
+        // Send size if it exists
+        ...(itemToAdd.size && { size: itemToAdd.size }),
       });
       setItems(data.cart); // Update frontend state with the new cart from the backend
     } catch (error) {
@@ -63,6 +67,10 @@ export const CartProvider = ({ children }) => {
   };
 
   const updateQuantity = async (productId, quantity) => {
+    if (quantity < 1) {
+      removeItem(productId);
+      return;
+    }
     setLoading(true);
     try {
       const { data } = await API.put(`/cart/${productId}`, { quantity });
@@ -71,6 +79,10 @@ export const CartProvider = ({ children }) => {
       console.error("Failed to update item quantity.", error);
     }
     setLoading(false);
+  };
+
+  const clearCart = () => {
+    setItems([]);
   };
 
   // UI control functions
@@ -91,6 +103,7 @@ export const CartProvider = ({ children }) => {
     addItem, removeItem, updateQuantity,
     openCart, closeCart, toggleCart,
     getSubtotal, getItemCount,
+    clearCart, // <-- Export the new function
   };
 
   return (
@@ -107,3 +120,4 @@ export const useCart = () => {
   }
   return context;
 };
+

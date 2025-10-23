@@ -4,7 +4,8 @@ import {
   getAllProducts,
   getProductById,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getBestsellerProducts
 } from '../controllers/productController.js';
 import { protect } from '../middleware/auth.js';
 import { adminOnly } from '../middleware/adminAuth.js';
@@ -20,7 +21,7 @@ router.route('/')
 
   // Add a new route for search. Place it before the '/:id' route.
 router.route('/search').get(searchProducts);
-
+router.route('/bestsellers').get(getBestsellerProducts);
 // Routes for getting, updating, and deleting a single product by its ID
 router.route('/:id')
   .get(getProductById)

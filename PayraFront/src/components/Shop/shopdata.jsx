@@ -1,6 +1,6 @@
 export const categories = {
   Books: {
-    subcategories: ["Munzereen Shahid", "Sadat Hossain", "Humayun Ahmed"],
+    subcategories: ["Munzereen Shahid", "Sadat Hossain", "Humayun Ahmed", "Abdullah Ibn Mahmud"],
     filters: ["topic"],
   },
   Clothes: {
